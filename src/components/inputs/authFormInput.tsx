@@ -1,6 +1,6 @@
 import { UseFormRegister } from "react-hook-form";
 
-export function BaseFormInput({
+export function AuthFormInput({
   id,
   type,
   placeholder,

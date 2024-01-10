@@ -1,30 +1,50 @@
 "use client";
 
 import Link from "next/link";
-import {BaseFormInput} from "../formInputs";
+import { AuthFormInput } from "../inputs/authFormInput";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AuthFormInputContainer } from "../formInputContainers";
-import { BaseAuthValidationSchema } from "../../../lib/schemas";
+import {
+  AuthFormInputContainer,
+  InputErrorMessage,
+} from "../inputContainers/authInputContainer";
+import { BaseAuthValidationSchema } from "../../lib/schemas";
+import { signIn } from "next-auth/react";
+import { SubmitButton } from "../buttons/submitButton";
+import { AlternativeAuthMethodLink } from "@/components/links/alternativeAuthMethodLink";
 
 const SignInValidationSchema = BaseAuthValidationSchema.extend({
-  keepSignedIn: z.boolean()
-})
+  keepSignedIn: z.boolean(),
+});
 
-type SignInFormData = z.infer<typeof SignInValidationSchema>;
+export type SignInFormData = z.infer<typeof SignInValidationSchema>;
 
-export default function LoginForm() {
+export default function SignInForm() {
   const {
     register,
     handleSubmit,
     formState: { errors },
+    setError,
   } = useForm<SignInFormData>({
     resolver: zodResolver(SignInValidationSchema),
   });
 
   const onSubmit: SubmitHandler<SignInFormData> = (data) => {
     console.log(data);
+    signIn("credentials", {
+      redirect: false,
+      email: data.email,
+      password: data.password,
+    })
+      .then((response) => {
+        if (response?.error) {
+          setError("root", { message: response.error });
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   };
 
   return (
@@ -36,13 +56,13 @@ export default function LoginForm() {
         inputName="Email"
         errorMessage={errors.email?.message}
       >
-        <BaseFormInput id="email" type="email" register={register} />
+        <AuthFormInput id="email" type="text" register={register} />
       </AuthFormInputContainer>
       <AuthFormInputContainer
         inputName="Password"
         errorMessage={errors.password?.message}
       >
-        <BaseFormInput id="password" type="text" register={register} />
+        <AuthFormInput id="password" type="password" register={register} />
       </AuthFormInputContainer>
       <div className="ml-3 flex flex-row items-center space-x-5">
         <input
@@ -58,19 +78,13 @@ export default function LoginForm() {
           Keep me signed in
         </label>
       </div>
-      <button className="text-purple-700 text-md font-semibold p-2 rounded-lg ring-1 ring-gray-100 hover:bg-indigo-100 focus:bg-indigo-200">
-        Sign In
-      </button>
-      <div className="ml-2 text-xs mt-1 block">
-        <span className="font-normal">Haven&apos;t account yet?</span>
-        <Link
-          href={"/register"}
-          className="text-purple-500 font-semibold hover:text-purple-600"
-        >
-          {" "}
-          Sign Up Now!
-        </Link>
-      </div>
+      <SubmitButton text="Sign In" />
+      {errors.root && <InputErrorMessage errorMessage={errors.root.message} />}
+      <AlternativeAuthMethodLink
+        description="Haven't account yet?"
+        href={"/signUp"}
+        linkText="Sign Up Now!"
+      />
     </form>
   );
 }
