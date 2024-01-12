@@ -5,7 +5,7 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AuthFormInputContainer } from "../inputContainers/authInputContainer";
-import { confirmEmail } from "@/lib/fetches";
+import { confirmUserEmail } from "@/lib/actions";
 import { useRouter } from "next/navigation";
 import { SubmitButton } from "../buttons/submitButton";
 
@@ -29,14 +29,13 @@ export default function EmailConfirmationForm() {
   });
 
   const onSubmit: SubmitHandler<EmailConfirmationFormData> = async (data) => {
-    const res = await confirmEmail(data.confirmationCode);
-    const json = await res.json();
+    const res = await confirmUserEmail(data.confirmationCode);
     if (res.ok) {
       router.push("/login");
     } else {
+      const json = await res.json();
       setError("confirmationCode", { message: json.message || "" });
     }
-    console.log(data);
   };
 
   return (

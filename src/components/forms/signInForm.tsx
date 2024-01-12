@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { AuthFormInput } from "../inputs/authFormInput";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -30,21 +29,15 @@ export default function SignInForm() {
     resolver: zodResolver(SignInValidationSchema),
   });
 
-  const onSubmit: SubmitHandler<SignInFormData> = (data) => {
-    console.log(data);
-    signIn("credentials", {
+  const onSubmit: SubmitHandler<SignInFormData> = async (data) => {
+    const res = await signIn("credentials", {
       redirect: false,
       email: data.email,
       password: data.password,
-    })
-      .then((response) => {
-        if (response?.error) {
-          setError("root", { message: response.error });
-        }
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    });
+    if (res?.error) {
+      setError("root", { message: res.error });
+    }
   };
 
   return (

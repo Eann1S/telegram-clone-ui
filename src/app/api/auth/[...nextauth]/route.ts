@@ -1,4 +1,4 @@
-import { signInAndGetJwt } from "@/lib/fetches";
+import { signInUser } from "@/lib/actions";
 import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
@@ -11,7 +11,7 @@ const handler = NextAuth({
         password: { label: "password", type: "text" },
       },
       async authorize(credentials) {
-        const res = await signInAndGetJwt(credentials);
+        const res = await signInUser(credentials);
         const json = await res.json();
 
         if (res.ok && json) {

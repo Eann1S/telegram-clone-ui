@@ -1,7 +1,6 @@
 "use client";
 
 import { AuthFormInput } from "../inputs/authFormInput";
-import Link from "next/link";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -9,7 +8,7 @@ import { BaseAuthValidationSchema } from "../../lib/schemas";
 import { AuthFormInputContainer } from "../inputContainers/authInputContainer";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { signUpUser } from "@/lib/fetches";
+import { signUpUser } from "@/lib/actions";
 import { SubmitButton } from "../buttons/submitButton";
 import { AlternativeAuthMethodLink } from "../links/alternativeAuthMethodLink";
 
@@ -37,14 +36,14 @@ export default function SignUpForm() {
   } = useForm<SignUpFormData>({ resolver: zodResolver(SignUpSchema) });
 
   const onSubmit: SubmitHandler<SignUpFormData> = async (data) => {
-    console.log(data);
+    localStorage.setItem("userEmail", data.email);
+    localStorage.setItem("username", data.username);
+    
     const res = await signUpUser(data);
-    const json = await res.json();
     if (res.ok) {
-      localStorage.setItem("userEmail", data.email);
-      localStorage.setItem("username", data.username);
       router.push("/email-confirmation");
     } else {
+      const json = await res.json();
       setError("email", { message: json.email || "" });
       setError("username", { message: json.username || "" });
       setError("password", { message: json.password || "" });
