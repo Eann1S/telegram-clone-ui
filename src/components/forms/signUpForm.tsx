@@ -1,22 +1,27 @@
 "use client";
 
-import { AuthFormInput } from "../inputs/authFormInput";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { BaseAuthValidationSchema } from "../../lib/schemas";
-import { AuthFormInputContainer } from "../inputContainers/authInputContainer";
+import { BaseAuthValidationSchema } from "../../lib/baseAuthValidationSchema";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 import { signUpUser } from "@/lib/actions";
-import { SubmitButton } from "../buttons/submitButton";
 import { AlternativeAuthMethodLink } from "../links/alternativeAuthMethodLink";
+import { Button } from "../ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 
 const SignUpSchema = BaseAuthValidationSchema.extend({
   username: z
     .string()
     .min(6, "Username length should be at least 6 characters"),
-  email: z.string().email("Invalid email format"),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords do not match",
@@ -27,86 +32,104 @@ export type SignUpFormData = z.infer<typeof SignUpSchema>;
 
 export default function SignUpForm() {
   const router = useRouter();
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    setError,
-    formState: { errors },
-  } = useForm<SignUpFormData>({ resolver: zodResolver(SignUpSchema) });
+  const form = useForm<SignUpFormData>({
+    resolver: zodResolver(SignUpSchema),
+    defaultValues: {
+      username: localStorage.getItem("username") || "",
+      email: localStorage.getItem("userEmail") || "",
+      password: "",
+      confirmPassword: "",
+    },
+  });
 
   const onSubmit: SubmitHandler<SignUpFormData> = async (data) => {
     localStorage.setItem("userEmail", data.email);
     localStorage.setItem("username", data.username);
-    
+
     const res = await signUpUser(data);
     if (res.ok) {
       router.push("/email-confirmation");
     } else {
       const json = await res.json();
-      setError("email", { message: json.email || "" });
-      setError("username", { message: json.username || "" });
-      setError("password", { message: json.password || "" });
-      setError("root", { message: json.message || "" });
+      form.setError("email", { message: json.email || "" });
+      form.setError("username", { message: json.username || "" });
+      form.setError("password", { message: json.password || "" });
+      form.setError("root", { message: json.message || "" });
     }
   };
 
-  useEffect(() => {
-    setValue("username", localStorage.getItem("username") || "");
-    setValue("email", localStorage.getItem("userEmail") || "");
-  }, [setValue]);
-
   return (
-    <>
+    <Form {...form}>
       <form
-        onSubmit={handleSubmit(onSubmit)}
+        onSubmit={form.handleSubmit(onSubmit)}
         className="flex flex-col w-full h-full space-y-4"
       >
-        <AuthFormInputContainer
-          inputName="Username"
-          errorMessage={errors.username?.message}
+        <FormField
+          control={form.control}
+          name="username"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Username</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="password"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Password</FormLabel>
+              <FormControl>
+                <Input type="password" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="confirmPassword"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Confirm Password</FormLabel>
+              <FormControl>
+                <Input type="password" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button
+          type="submit"
+          variant="default"
+          className="text-md text-primary-foreground font-semibold"
         >
-          <AuthFormInput id="username" type="text" register={register} />
-        </AuthFormInputContainer>
-        <AuthFormInputContainer
-          inputName="Email"
-          errorMessage={errors.email?.message}
-        >
-          <AuthFormInput
-            id="email"
-            type="text"
-            placeholder="example@gmail.com"
-            register={register}
-          />
-        </AuthFormInputContainer>
-        <AuthFormInputContainer
-          inputName="Password"
-          errorMessage={errors.password?.message}
-        >
-          <AuthFormInput id="password" type="password" register={register} />
-        </AuthFormInputContainer>
-        <AuthFormInputContainer
-          inputName="Confirm password"
-          errorMessage={errors.confirmPassword?.message}
-        >
-          <AuthFormInput
-            id="confirmPassword"
-            type="password"
-            register={register}
-          />
-        </AuthFormInputContainer>
-        {errors.root && (
-          <p className="ml-2 text-xs font-medium text-red-500">
-            {errors.root.message}
-          </p>
-        )}
-        <SubmitButton text="Sign Up" />
+          Sign up
+        </Button>
         <AlternativeAuthMethodLink
           description="Already have an account?"
-          href={"/signIn"}
-          linkText="Sign In!"
-        />
+          href={"/signin"}
+        >
+          Sign in!
+        </AlternativeAuthMethodLink>
       </form>
-    </>
+    </Form>
   );
 }

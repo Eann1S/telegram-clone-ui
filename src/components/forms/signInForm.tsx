@@ -8,7 +8,7 @@ import {
   AuthFormInputContainer,
   InputErrorMessage,
 } from "../inputContainers/authInputContainer";
-import { BaseAuthValidationSchema } from "../../lib/schemas";
+import { BaseAuthValidationSchema } from "../../lib/baseAuthValidationSchema";
 import { signIn } from "next-auth/react";
 import { SubmitButton } from "../buttons/submitButton";
 import { AlternativeAuthMethodLink } from "@/components/links/alternativeAuthMethodLink";
@@ -75,9 +75,10 @@ export default function SignInForm() {
       {errors.root && <InputErrorMessage errorMessage={errors.root.message} />}
       <AlternativeAuthMethodLink
         description="Haven't account yet?"
-        href={"/signUp"}
-        linkText="Sign Up Now!"
-      />
+        href={"/signup"}
+      >
+        Sign Up Now!
+      </AlternativeAuthMethodLink>
     </form>
   );
 }
