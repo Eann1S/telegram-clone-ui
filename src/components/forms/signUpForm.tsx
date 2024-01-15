@@ -5,7 +5,6 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { BaseAuthValidationSchema } from "../../lib/baseAuthValidationSchema";
 import { useRouter } from "next/navigation";
-import { signUpUser } from "@/lib/actions";
 import { AlternativeAuthMethodLink } from "../links/alternativeAuthMethodLink";
 import { Button } from "../ui/button";
 import {
@@ -17,6 +16,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { SignUpError, useSignUp } from "@/lib/hooks";
+import classNames from "classnames";
 
 const SignUpSchema = BaseAuthValidationSchema.extend({
   username: z
@@ -31,7 +32,6 @@ const SignUpSchema = BaseAuthValidationSchema.extend({
 export type SignUpFormData = z.infer<typeof SignUpSchema>;
 
 export default function SignUpForm() {
-  const router = useRouter();
   const form = useForm<SignUpFormData>({
     resolver: zodResolver(SignUpSchema),
     defaultValues: {
@@ -41,21 +41,22 @@ export default function SignUpForm() {
       confirmPassword: "",
     },
   });
+  const router = useRouter();
+  const signUpMutation = useSignUp(onSignUpSuccess, onSignUpError);
+
+  function onSignUpSuccess() {
+    router.push("/email-confirmation");
+  }
+  function onSignUpError(error: SignUpError) {
+    form.setError("email", { message: error.email });
+    form.setError("username", { message: error.username });
+    form.setError("password", { message: error.password });
+  }
 
   const onSubmit: SubmitHandler<SignUpFormData> = async (data) => {
     localStorage.setItem("userEmail", data.email);
     localStorage.setItem("username", data.username);
-
-    const res = await signUpUser(data);
-    if (res.ok) {
-      router.push("/email-confirmation");
-    } else {
-      const json = await res.json();
-      form.setError("email", { message: json.email || "" });
-      form.setError("username", { message: json.username || "" });
-      form.setError("password", { message: json.password || "" });
-      form.setError("root", { message: json.message || "" });
-    }
+    signUpMutation.mutate(data);
   };
 
   return (
@@ -119,9 +120,12 @@ export default function SignUpForm() {
         <Button
           type="submit"
           variant="default"
-          className="text-md text-primary-foreground font-semibold"
+          className={classNames(
+            "text-md text-primary-foreground font-semibold",
+            { "text-muted-foreground": signUpMutation.isPending }
+          )}
         >
-          Sign up
+          {signUpMutation.isPending ? "Loading..." : "Sign up"}
         </Button>
         <AlternativeAuthMethodLink
           description="Already have an account?"
