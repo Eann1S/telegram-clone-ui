@@ -27,25 +27,6 @@ export function useUserEmail() {
   return { userEmail };
 }
 
-export function useSignIn(
-  credentials: Record<"email" | "password", string>,
-  onSuccess?: () => any,
-  onError?: () => any
-) {
-  return useMutation({
-    mutationKey: ["signin"],
-    mutationFn: () => {
-      return axios.post(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/login`,
-        credentials,
-        defaultRequestConfig
-      );
-    },
-    onSuccess,
-    onError,
-  });
-}
-
 export function useSignUp(
   onSuccess?: () => any,
   onError?: (error: SignUpError) => any

@@ -1,6 +1,6 @@
-import { signInUser } from "@/lib/actions";
 import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import axios from "axios";
 
 const handler = NextAuth({
   providers: [
@@ -11,11 +11,14 @@ const handler = NextAuth({
         password: { label: "password", type: "text" },
       },
       async authorize(credentials) {
-        const res = await signInUser(credentials);
-        const json = await res.json();
+        const res = await axios.post(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/login`,
+          credentials,
+          { headers: { "Content-Type": "application/json" } }
+        );
 
-        if (res.ok && json) {
-          return json;
+        if (res.status === 200) {
+          return res.data;
         }
         return null;
       },

@@ -18,8 +18,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { SignUpError, useSignUp } from "@/lib/hooks";
 import classNames from "classnames";
+import { FormErrorMessage } from "../messages/formErrorMessage";
 
-const SignUpSchema = BaseAuthValidationSchema.extend({
+const SignUpValidationSchema = BaseAuthValidationSchema.extend({
   username: z
     .string()
     .min(6, "Username length should be at least 6 characters"),
@@ -29,11 +30,11 @@ const SignUpSchema = BaseAuthValidationSchema.extend({
   path: ["confirmPassword"],
 });
 
-export type SignUpFormData = z.infer<typeof SignUpSchema>;
+export type SignUpFormData = z.infer<typeof SignUpValidationSchema>;
 
 export default function SignUpForm() {
   const form = useForm<SignUpFormData>({
-    resolver: zodResolver(SignUpSchema),
+    resolver: zodResolver(SignUpValidationSchema),
     defaultValues: {
       username: localStorage.getItem("username") || "",
       email: localStorage.getItem("userEmail") || "",
@@ -51,6 +52,7 @@ export default function SignUpForm() {
     form.setError("email", { message: error.email });
     form.setError("username", { message: error.username });
     form.setError("password", { message: error.password });
+    form.setError("root", { message: error.message });
   }
 
   const onSubmit: SubmitHandler<SignUpFormData> = async (data) => {
@@ -127,6 +129,13 @@ export default function SignUpForm() {
         >
           {signUpMutation.isPending ? "Loading..." : "Sign up"}
         </Button>
+        {form.formState.errors.root && (
+          <div className="ml-2">
+            <FormErrorMessage
+              errorMessage={form.formState.errors.root.message}
+            />
+          </div>
+        )}
         <AlternativeAuthMethodLink
           description="Already have an account?"
           href={"/signin"}
