@@ -1,55 +1,87 @@
 "use client";
 
-import { AuthFormInput } from "../inputs/authFormInput";
 import { SubmitHandler, useForm } from "react-hook-form";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AuthFormInputContainer } from "../inputContainers/authInputContainer";
-import { confirmUserEmail } from "@/lib/actions";
 import { useRouter } from "next/navigation";
-import { SubmitButton } from "../buttons/submitButton";
-
-const EmailConfirmationValidationSchema = z.object({
-  confirmationCode: z.string().min(1, "Please enter confirmation code"),
-});
-
-export type EmailConfirmationFormData = z.infer<
-  typeof EmailConfirmationValidationSchema
->;
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "../ui/form";
+import { Button } from "../ui/button";
+import classNames from "classnames";
+import { Input } from "../ui/input";
+import { FormErrorMessage } from "../messages/formErrorMessage";
+import { useConfirmEmail } from "@/lib/hooks";
+import { BaseError } from "../../../types/types";
+import { EmailConfirmationValidationSchema } from "@/lib/validationSchemas";
+import { EmailConfirmationFormData } from "../../../types/types";
 
 export default function EmailConfirmationForm() {
-  const router = useRouter();
-  const {
-    register,
-    handleSubmit,
-    setError,
-    formState: { errors },
-  } = useForm<EmailConfirmationFormData>({
+  const form = useForm<EmailConfirmationFormData>({
     resolver: zodResolver(EmailConfirmationValidationSchema),
+    defaultValues: {
+      confirmationCode: "",
+    },
   });
+  const router = useRouter();
+  const mutation = useConfirmEmail(onSuccess, onError);
+
+  function onSuccess() {
+    router.push("/signin");
+    localStorage.removeItem("userEmail");
+    localStorage.removeItem("username");
+  }
+  function onError(error: BaseError) {
+    form.setError("root", { message: error.message || "" });
+  }
 
   const onSubmit: SubmitHandler<EmailConfirmationFormData> = async (data) => {
-    const res = await confirmUserEmail(data.confirmationCode);
-    if (res.ok) {
-      router.push("/login");
-    } else {
-      const json = await res.json();
-      setError("confirmationCode", { message: json.message || "" });
-    }
+    mutation.mutate(data.confirmationCode);
   };
 
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className="flex flex-col w-full h-full space-y-4"
-    >
-      <AuthFormInputContainer
-        inputName="Confirmation Code"
-        errorMessage={errors.confirmationCode?.message}
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="flex flex-col w-full h-full space-y-4"
       >
-        <AuthFormInput id="confirmationCode" type="text" register={register} />
-      </AuthFormInputContainer>
-      <SubmitButton text="Confirm Email" />
-    </form>
+        <FormField
+          control={form.control}
+          name="confirmationCode"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Confirmation code</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        {form.formState.errors.root && (
+          <div className="ml-2">
+            <FormErrorMessage
+              errorMessage={form.formState.errors.root.message}
+            />
+          </div>
+        )}
+        <Button
+          type="submit"
+          variant="default"
+          className={classNames(
+            "text-base text-primary-foreground font-semibold",
+            {
+              "text-muted-foreground": mutation.isPending,
+            }
+          )}
+        >
+          {mutation.isPending ? "Loading..." : "Confirm Email"}
+        </Button>
+      </form>
+    </Form>
   );
 }

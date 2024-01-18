@@ -1,14 +1,8 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useMutation } from "@tanstack/react-query";
-import { SignUpFormData } from "@/components/forms/signUpForm";
-
-export type SignUpError = {
-  email?: string;
-  username?: string;
-  password?: string;
-  message?: string;
-};
+import { SignUpFormData, SignUpUserData } from "../../types/types";
+import { SignUpError, BaseError } from "../../types/types";
 
 const defaultRequestConfig = {
   headers: { "Content-Type": "application/json" },
@@ -33,7 +27,7 @@ export function useSignUp(
 ) {
   return useMutation({
     mutationKey: ["signup"],
-    mutationFn: (userData: Omit<SignUpFormData, "confirmPassword">) => {
+    mutationFn: (userData: SignUpUserData) => {
       return axios.post(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/register`,
         userData,
@@ -45,9 +39,9 @@ export function useSignUp(
   });
 }
 
-export async function useConfirmEmail(
+export function useConfirmEmail(
   onSuccess?: () => any,
-  onError?: () => any
+  onError?: (error: BaseError) => any
 ) {
   return useMutation({
     mutationKey: ["confirmEmail"],

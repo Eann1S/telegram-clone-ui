@@ -1,4 +1,4 @@
-import { SignUpFormData } from "@/components/forms/signUpForm";
+import { SignUpFormData } from "../../types/types";
 
 export async function signInUser(
   credentials?: Record<"email" | "password", string>

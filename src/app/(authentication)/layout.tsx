@@ -18,10 +18,10 @@ export default function AuthenticationLayout({
             className="w-[175px] h-[175px]"
           />
         </div>
-        <div className="w-full">
+        <div className="w-full mb-8">
           <h1 className="text-center text-4xl font-bold">Telegram</h1>
         </div>
-        <div className="mt-10 w-full h-full">{children}</div>
+        <div className="w-full h-full">{children}</div>
       </div>
     </main>
   );

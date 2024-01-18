@@ -1,9 +1,7 @@
 "use client";
 
 import { SubmitHandler, useForm } from "react-hook-form";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { BaseAuthValidationSchema } from "../../lib/baseAuthValidationSchema";
 import { signIn } from "next-auth/react";
 import { AlternativeAuthMethodLink } from "@/components/links/alternativeAuthMethodLink";
 import {
@@ -19,12 +17,8 @@ import { Checkbox } from "../ui/checkbox";
 import { Button } from "../ui/button";
 import classNames from "classnames";
 import { FormErrorMessage } from "../messages/formErrorMessage";
-
-const SignInValidationSchema = BaseAuthValidationSchema.extend({
-  keepSignedIn: z.boolean().default(false),
-});
-
-export type SignInFormData = z.infer<typeof SignInValidationSchema>;
+import { SignInValidationSchema } from "@/lib/validationSchemas";
+import { SignInFormData } from "../../../types/types";
 
 export default function SignInForm() {
   const form = useForm<SignInFormData>({

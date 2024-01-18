@@ -1,9 +1,7 @@
 "use client";
 
 import { SubmitHandler, useForm } from "react-hook-form";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { BaseAuthValidationSchema } from "../../lib/baseAuthValidationSchema";
 import { useRouter } from "next/navigation";
 import { AlternativeAuthMethodLink } from "../links/alternativeAuthMethodLink";
 import { Button } from "../ui/button";
@@ -16,21 +14,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { SignUpError, useSignUp } from "@/lib/hooks";
+import { useSignUp } from "@/lib/hooks";
+import { SignUpError } from "../../../types/types";
 import classNames from "classnames";
 import { FormErrorMessage } from "../messages/formErrorMessage";
-
-const SignUpValidationSchema = BaseAuthValidationSchema.extend({
-  username: z
-    .string()
-    .min(6, "Username length should be at least 6 characters"),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords do not match",
-  path: ["confirmPassword"],
-});
-
-export type SignUpFormData = z.infer<typeof SignUpValidationSchema>;
+import { SignUpValidationSchema } from "@/lib/validationSchemas";
+import { SignUpFormData } from "../../../types/types";
 
 export default function SignUpForm() {
   const form = useForm<SignUpFormData>({
@@ -43,16 +32,16 @@ export default function SignUpForm() {
     },
   });
   const router = useRouter();
-  const signUpMutation = useSignUp(onSignUpSuccess, onSignUpError);
+  const signUpMutation = useSignUp(onSuccess, onError);
 
-  function onSignUpSuccess() {
+  function onSuccess() {
     router.push("/email-confirmation");
   }
-  function onSignUpError(error: SignUpError) {
-    form.setError("email", { message: error.email });
-    form.setError("username", { message: error.username });
-    form.setError("password", { message: error.password });
-    form.setError("root", { message: error.message });
+  function onError(error: SignUpError) {
+    form.setError("email", { message: error.email || "" });
+    form.setError("username", { message: error.username || "" });
+    form.setError("password", { message: error.password || "" });
+    form.setError("root", { message: error.message || "" });
   }
 
   const onSubmit: SubmitHandler<SignUpFormData> = async (data) => {
@@ -123,7 +112,7 @@ export default function SignUpForm() {
           type="submit"
           variant="default"
           className={classNames(
-            "text-md text-primary-foreground font-semibold",
+            "text-base text-primary-foreground font-semibold",
             { "text-muted-foreground": signUpMutation.isPending }
           )}
         >
