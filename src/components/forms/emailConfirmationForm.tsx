@@ -19,6 +19,7 @@ import { useConfirmEmail } from "@/lib/hooks";
 import { BaseError } from "../../../types/types";
 import { EmailConfirmationValidationSchema } from "@/lib/validationSchemas";
 import { EmailConfirmationFormData } from "../../../types/types";
+import toast from "react-hot-toast";
 
 export default function EmailConfirmationForm() {
   const form = useForm<EmailConfirmationFormData>({
@@ -36,7 +37,7 @@ export default function EmailConfirmationForm() {
     localStorage.removeItem("username");
   }
   function onError(error: BaseError) {
-    form.setError("root", { message: error.message || "" });
+    toast.error(error.message || "");
   }
 
   const onSubmit: SubmitHandler<EmailConfirmationFormData> = async (data) => {

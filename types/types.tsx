@@ -15,10 +15,10 @@ export type SignUpError = BaseError & {
   password?: string;
 };
 
-export type SignUpUserData = Omit<SignUpFormData, "confirmPassword">;
-
 export type SignUpFormData = z.infer<typeof SignUpValidationSchema>;
 export type SignInFormData = z.infer<typeof SignInValidationSchema>;
 export type EmailConfirmationFormData = z.infer<
   typeof EmailConfirmationValidationSchema
 >;
+
+export type SignUpUserData = Omit<SignUpFormData, "confirmPassword">;

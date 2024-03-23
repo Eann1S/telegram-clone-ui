@@ -19,6 +19,7 @@ import classNames from "classnames";
 import { FormErrorMessage } from "../messages/formErrorMessage";
 import { SignInValidationSchema } from "@/lib/validationSchemas";
 import { SignInFormData } from "../../../types/types";
+import toast from "react-hot-toast";
 
 export default function SignInForm() {
   const form = useForm<SignInFormData>({
@@ -37,7 +38,7 @@ export default function SignInForm() {
       password: data.password,
     });
     if (res?.error) {
-      form.setError("root", { message: res.error });
+      toast.error(res.error);
     }
   };
 
@@ -54,7 +55,7 @@ export default function SignInForm() {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input {...field} />
+                <Input type="text" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

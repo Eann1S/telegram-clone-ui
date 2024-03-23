@@ -15,11 +15,12 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useSignUp } from "@/lib/hooks";
-import { SignUpError } from "../../../types/types";
+import { BaseError, SignUpError } from "../../../types/types";
 import classNames from "classnames";
 import { FormErrorMessage } from "../messages/formErrorMessage";
 import { SignUpValidationSchema } from "@/lib/validationSchemas";
 import { SignUpFormData } from "../../../types/types";
+import toast from "react-hot-toast";
 
 export default function SignUpForm() {
   const form = useForm<SignUpFormData>({
@@ -37,11 +38,8 @@ export default function SignUpForm() {
   function onSuccess() {
     router.push("/email-confirmation");
   }
-  function onError(error: SignUpError) {
-    form.setError("email", { message: error.email || "" });
-    form.setError("username", { message: error.username || "" });
-    form.setError("password", { message: error.password || "" });
-    form.setError("root", { message: error.message || "" });
+  function onError(error: BaseError) {
+    toast.error(error.message || "");
   }
 
   const onSubmit: SubmitHandler<SignUpFormData> = async (data) => {

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useMutation } from "@tanstack/react-query";
-import { SignUpFormData, SignUpUserData } from "../../types/types";
+import { SignUpUserData } from "../../types/types";
 import { SignUpError, BaseError } from "../../types/types";
 
 const defaultRequestConfig = {
@@ -23,7 +23,7 @@ export function useUserEmail() {
 
 export function useSignUp(
   onSuccess?: () => any,
-  onError?: (error: SignUpError) => any
+  onError?: (error: BaseError) => any
 ) {
   return useMutation({
     mutationKey: ["signup"],
@@ -49,7 +49,12 @@ export function useConfirmEmail(
       return axios.post(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/confirm/email/${confirmationCode}`,
         {},
-        defaultRequestConfig
+        {
+          headers: {
+            ...defaultRequestConfig.headers,
+            "User-Email": localStorage.getItem("userEmail")
+          }
+        }
       );
     },
     onSuccess,

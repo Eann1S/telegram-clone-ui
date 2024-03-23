@@ -8,7 +8,7 @@ const handler = NextAuth({
       name: "Credentials",
       credentials: {
         email: { label: "email", type: "text" },
-        password: { label: "password", type: "text" },
+        password: { label: "password", type: "password" },
       },
       async authorize(credentials) {
         const res = await axios.post(
